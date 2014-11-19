@@ -3538,14 +3538,16 @@ function loadRelations(resourceName, instance, relations, options) {
       if (DSUtils.contains(relations, relationName)) {
         var task;
         var params = {};
-        params[def.foreignKey] = instance[definition.idAttribute];
 
-        if (def.type === 'hasMany' && params[def.foreignKey]) {
+        params = {where: {}};
+        params.where[def.foreignKey] = {'==':instance[definition.idAttribute]};
+
+        if (def.type === 'hasMany' && params.where[def.foreignKey]) {
           task = DS.findAll(relationName, params, options);
         } else if (def.type === 'hasOne') {
           if (def.localKey && instance[def.localKey]) {
             task = DS.find(relationName, instance[def.localKey], options);
-          } else if (def.foreignKey && params[def.foreignKey]) {
+          } else if (def.foreignKey && params.where[def.foreignKey]) {
             task = DS.findAll(relationName, params, options).then(function (hasOnes) {
               return hasOnes.length ? hasOnes[0] : null;
             });
@@ -3977,7 +3979,7 @@ function errorPrefix(resourceName) {
  *
  * DS.filter('document', params); // []
  *
- * DS.updateAll('document', 5, {
+ * DS.updateAll('document', {
  *   author: 'Sally'
  * }, params).then(function (documents) {
  *   documents; // The documents that were updated via an adapter
